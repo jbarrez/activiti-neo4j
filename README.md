@@ -80,4 +80,9 @@ Variables are stored in a *variable node* which is related to the Process Instan
 
 Execution local/task local variables are possible in the same way, simply attach a variable node to that specific node.
 
+## Thoughs
+
+* Migrations of process instance (when deploying process definitions) gets really easy with this model. It is a matter of moving execution relationships to the new process definition.
+* Neo4J data can be easily shared: eg on machine A you have the data around process definition 1,2,3 and on machine B the process definiton 4. Also multi-tenancy gets easy.
+
 
