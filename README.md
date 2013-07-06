@@ -12,7 +12,7 @@ Uses existing Activiti concepts: Executions, Command Context, services, etc. So 
 As with Activiti, the ProcessEngine is the starting class of it all. 
 Through the ProcessEngine, the different services can be obtained.
 
-Internally, the ProcessEngine managaes the GraphDB connection and a CommandExecutor.
+Internally, the ProcessEngine manages the GraphDB connection and a CommandExecutor.
 The CommandExecutor is similar to the way it currently is implemented in Activiti.
 For the moment, it 
 * Wraps the logic in a Neo4J transaction
@@ -80,7 +80,7 @@ Variables are stored in a *variable node* which is related to the Process Instan
 
 Execution local/task local variables are possible in the same way, simply attach a variable node to that specific node.
 
-## Thoughs
+## Thougths
 
 * Migrations of process instance (when deploying process definitions) gets really easy with this model. It is a matter of moving execution relationships to the new process definition.
 * Neo4J data can be easily shared: eg on machine A you have the data around process definition 1,2,3 and on machine B the process definiton 4. Also multi-tenancy gets easy.
