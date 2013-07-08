@@ -23,6 +23,7 @@ import org.neo4j.graphdb.Transaction;
 public class CommandExecutor {
   
   protected GraphDatabaseService graphDatabaseService;
+  protected Core core;
   
   public CommandExecutor(GraphDatabaseService graphDatabaseService) {
     this.graphDatabaseService = graphDatabaseService;
@@ -57,6 +58,8 @@ public class CommandExecutor {
 
   protected <T> CommandContext<T> initialiseCommandContext(final Command<T> command) {
     final CommandContext<T> commandContext = new CommandContext<T>();
+    commandContext.setCore(core);
+    
     commandContext.getAgenda().add(new Runnable() {
       
       public void run() {
@@ -67,4 +70,22 @@ public class CommandExecutor {
     return commandContext;
   }
 
+  
+  public GraphDatabaseService getGraphDatabaseService() {
+    return graphDatabaseService;
+  }
+
+  
+  public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
+    this.graphDatabaseService = graphDatabaseService;
+  }
+
+  public Core getCore() {
+    return core;
+  }
+  
+  public void setCore(Core core) {
+    this.core = core;
+  }
+  
 }

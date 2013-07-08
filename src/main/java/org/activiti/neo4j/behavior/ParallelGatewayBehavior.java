@@ -3,8 +3,8 @@ package org.activiti.neo4j.behavior;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.activiti.neo4j.EngineOperations;
 import org.activiti.neo4j.Execution;
-import org.activiti.neo4j.InternalActivitiEngine;
 import org.activiti.neo4j.RelTypes;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -13,7 +13,7 @@ import org.neo4j.graphdb.Relationship;
 
 public class ParallelGatewayBehavior extends AbstractBehavior {
 
-  public void execute(Execution execution, InternalActivitiEngine internalActivitiEngine) {
+  public void execute(Execution execution, EngineOperations engineOperations) {
     
     // Check the number of incoming to see if we have to join or fork
     Node parallelGwNode = execution.getEndNode();
@@ -28,7 +28,7 @@ public class ParallelGatewayBehavior extends AbstractBehavior {
     if (incomingSequenceFlowCount == 1) {
       
       // Fork immediately (optimisation)
-      leave(execution, internalActivitiEngine);
+      leave(execution, engineOperations);
       
     } else {
       
@@ -52,7 +52,7 @@ public class ParallelGatewayBehavior extends AbstractBehavior {
         
         // Create new one to leave gateway
         Relationship outgoingExecution = processInstanceNode.createRelationshipTo(parallelGwNode, RelTypes.EXECUTION);
-        leave(new Execution(outgoingExecution), internalActivitiEngine);
+        leave(new Execution(outgoingExecution), engineOperations);
         
       }
       

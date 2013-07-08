@@ -5,7 +5,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 
 public class ProcessEngine {
   
-  protected GraphDatabaseService graphDb;
+  protected GraphDatabaseService graphDatabaseService;
 
   protected RepositoryService repositoryService;
   protected RuntimeService runtimeService;
@@ -13,29 +13,24 @@ public class ProcessEngine {
   
   protected CommandExecutor commandExecutor;
   
-  public ProcessEngine(GraphDatabaseService graphDatabaseService) {
-    this.graphDb = graphDatabaseService;
-    this.commandExecutor = new CommandExecutor(graphDatabaseService);
+  public ProcessEngine() {
     
-    this.repositoryService = new RepositoryService(graphDatabaseService, commandExecutor);
-    this.runtimeService = new RuntimeService(graphDatabaseService, commandExecutor);
-    this.taskService = new TaskService(graphDatabaseService, commandExecutor);
+  }
+  
+  public GraphDatabaseService getGraphDatabaseService() {
+    return graphDatabaseService;
+  }
+  
+  public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
+    this.graphDatabaseService = graphDatabaseService;
   }
 
   public RepositoryService getRepositoryService() {
     return repositoryService;
   }
-
+  
   public void setRepositoryService(RepositoryService repositoryService) {
     this.repositoryService = repositoryService;
-  }
-  
-  public GraphDatabaseService getGraphDb() {
-    return graphDb;
-  }
-  
-  public void setGraphDb(GraphDatabaseService graphDb) {
-    this.graphDb = graphDb;
   }
 
   public RuntimeService getRuntimeService() {
@@ -45,13 +40,21 @@ public class ProcessEngine {
   public void setRuntimeService(RuntimeService runtimeService) {
     this.runtimeService = runtimeService;
   }
-
+  
   public TaskService getTaskService() {
     return taskService;
   }
-
+  
   public void setTaskService(TaskService taskService) {
     this.taskService = taskService;
   }
   
+  public CommandExecutor getCommandExecutor() {
+    return commandExecutor;
+  }
+  
+  public void setCommandExecutor(CommandExecutor commandExecutor) {
+    this.commandExecutor = commandExecutor;
+  }
+
 }

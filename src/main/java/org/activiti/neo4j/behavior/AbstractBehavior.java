@@ -3,8 +3,8 @@ package org.activiti.neo4j.behavior;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.activiti.neo4j.EngineOperations;
 import org.activiti.neo4j.Execution;
-import org.activiti.neo4j.InternalActivitiEngine;
 import org.activiti.neo4j.RelTypes;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -13,7 +13,7 @@ import org.neo4j.graphdb.Relationship;
 
 public abstract class AbstractBehavior implements Behavior {
   
-  protected void leave(Execution execution, InternalActivitiEngine internalActivitiEngine) {
+  protected void leave(Execution execution, EngineOperations engineOperations) {
     Node processInstanceNode = execution.getStartNode();
     Node currentActivityNode = execution.getEndNode();
     
@@ -30,19 +30,19 @@ public abstract class AbstractBehavior implements Behavior {
     
     for (Node nextNode : nextNodes) {
       Relationship outgoingExecution = processInstanceNode.createRelationshipTo(nextNode, RelTypes.EXECUTION);
-      internalActivitiEngine.continueProcess(new Execution(outgoingExecution));
+      engineOperations.continueProcess(new Execution(outgoingExecution));
     }
   }
   
-  protected void gotoNode(Node node, Execution execution, InternalActivitiEngine internalActivitiEngine) {
+  protected void gotoNode(Node node, Execution execution, EngineOperations engineOperations) {
     execution.delete();
     
     Node processInstanceNode = execution.getStartNode();
     Relationship outgoingExecution = processInstanceNode.createRelationshipTo(node, RelTypes.EXECUTION);
-    internalActivitiEngine.continueProcess(new Execution(outgoingExecution));
+    engineOperations.continueProcess(new Execution(outgoingExecution));
   }
   
-  public void signal(Execution execution, InternalActivitiEngine internalActivitiEngine) {
+  public void signal(Execution execution, EngineOperations engineOperations) {
     throw new RuntimeException("This behavior does not accept signals");
   }
 

@@ -12,8 +12,8 @@
  */
 package org.activiti.neo4j.behavior;
 
+import org.activiti.neo4j.EngineOperations;
 import org.activiti.neo4j.Execution;
-import org.activiti.neo4j.InternalActivitiEngine;
 import org.activiti.neo4j.RelTypes;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -25,7 +25,7 @@ import org.neo4j.graphdb.Relationship;
  */
 public class ExclusiveGatewayBehavior extends AbstractBehavior {
   
-  public void execute(Execution execution, InternalActivitiEngine internalActivitiEngine) {
+  public void execute(Execution execution, EngineOperations engineOperations) {
     
     // Evaluate every outgoing sequence flow. The first that evaluates to true is selected.
     // Otherwise the default flow is followed.
@@ -55,9 +55,9 @@ public class ExclusiveGatewayBehavior extends AbstractBehavior {
     }
     
     if (nextNode != null) {
-      gotoNode(nextNode, execution, internalActivitiEngine);
+      gotoNode(nextNode, execution, engineOperations);
     } else if (defaultFlow != null) {
-      gotoNode(defaultFlow.getEndNode(), execution, internalActivitiEngine);
+      gotoNode(defaultFlow.getEndNode(), execution, engineOperations);
     } else {
       throw new RuntimeException("Could not find a sequenceflow with true condition nor default flow");
     }

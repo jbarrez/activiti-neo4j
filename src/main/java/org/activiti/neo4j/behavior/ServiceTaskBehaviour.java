@@ -12,8 +12,8 @@
  */
 package org.activiti.neo4j.behavior;
 
+import org.activiti.neo4j.EngineOperations;
 import org.activiti.neo4j.Execution;
-import org.activiti.neo4j.InternalActivitiEngine;
 import org.activiti.neo4j.JavaDelegate;
 import org.neo4j.graphdb.Node;
 
@@ -24,9 +24,9 @@ import org.neo4j.graphdb.Node;
  */
 public class ServiceTaskBehaviour extends AbstractBehavior {
   
-  public void execute(Execution execution, InternalActivitiEngine internalActivitiEngine) {
+  public void execute(Execution execution, EngineOperations engineOperations) {
     executeDelegate(execution);
-    leave(execution, internalActivitiEngine);
+    leave(execution, engineOperations);
   }
 
   protected void executeDelegate(Execution execution) {

@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.activiti.neo4j.ProcessDefinition;
 import org.activiti.neo4j.ProcessEngine;
+import org.activiti.neo4j.ProcessEngineConfiguration;
 import org.activiti.neo4j.Task;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +33,9 @@ public class ActivitiNeo4jTest {
 //    server = new WrappingNeoServerBootstrapper((GraphDatabaseAPI) graphDb);
 //    server.start();
     
-    processEngine = new ProcessEngine(graphDb);
+    ProcessEngineConfiguration processEngineConfiguration = new ProcessEngineConfiguration();
+    processEngineConfiguration.setGraphDatabaseService(graphDb);
+    processEngine = processEngineConfiguration.buildProcessEngine();
   }
   
   @Test

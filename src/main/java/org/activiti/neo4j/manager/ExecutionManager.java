@@ -10,17 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.activiti.neo4j;
-
+package org.activiti.neo4j.manager;
 
 
 /**
  * @author Joram Barrez
  */
-public interface InternalActivitiEngine {
+public class ExecutionManager extends AbstractDataManager {
   
-  void continueProcess(Execution execution);
   
-  void signal(Execution execution);
 
 }
