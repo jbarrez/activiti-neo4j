@@ -12,6 +12,7 @@
  */
 package org.activiti.neo4j;
 
+import org.activiti.neo4j.manager.ExecutionManager;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 
@@ -24,6 +25,7 @@ public class CommandExecutor {
   
   protected GraphDatabaseService graphDatabaseService;
   protected Core core;
+  protected ExecutionManager executionManager;
   
   public CommandExecutor(GraphDatabaseService graphDatabaseService) {
     this.graphDatabaseService = graphDatabaseService;
@@ -59,6 +61,7 @@ public class CommandExecutor {
   protected <T> CommandContext<T> initialiseCommandContext(final Command<T> command) {
     final CommandContext<T> commandContext = new CommandContext<T>();
     commandContext.setCore(core);
+    commandContext.setExecutionManager(executionManager);
     
     commandContext.getAgenda().add(new Runnable() {
       
@@ -86,6 +89,14 @@ public class CommandExecutor {
   
   public void setCore(Core core) {
     this.core = core;
+  }
+
+  public ExecutionManager getExecutionManager() {
+    return executionManager;
+  }
+
+  public void setExecutionManager(ExecutionManager executionManager) {
+    this.executionManager = executionManager;
   }
   
 }

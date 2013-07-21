@@ -12,12 +12,12 @@
  */
 package org.activiti.neo4j.behavior;
 
+import java.util.Iterator;
+
+import org.activiti.neo4j.Activity;
 import org.activiti.neo4j.EngineOperations;
 import org.activiti.neo4j.Execution;
-import org.activiti.neo4j.RelTypes;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.activiti.neo4j.SequenceFlow;
 
 
 /**
@@ -30,12 +30,17 @@ public class ExclusiveGatewayBehavior extends AbstractBehavior {
     // Evaluate every outgoing sequence flow. The first that evaluates to true is selected.
     // Otherwise the default flow is followed.
     
-    Node currentActivityNode = execution.getEndNode();
-    String defaultFlowId = (String) currentActivityNode.getProperty("defaultFlow");
+    Activity currentActivity = execution.getActivity();
+    String defaultFlowId = (String) currentActivity.getProperty("defaultFlow");
     
-    Node nextNode = null;
-    Relationship defaultFlow = null;
-    for (Relationship sequenceFlow : currentActivityNode.getRelationships(Direction.OUTGOING, RelTypes.SEQ_FLOW)) {
+    Activity nextActivity = null;
+    SequenceFlow defaultSequenceFlow = null;
+    
+    boolean found = false;
+    Iterator<SequenceFlow> sequenceFlowIterator = currentActivity.getOutgoingSequenceFlow().iterator();
+    while (!found && sequenceFlowIterator.hasNext()) {
+      
+      SequenceFlow sequenceFlow = sequenceFlowIterator.next();
       
       // Get condition, if true -> evaluate
       String conditionExpression =  null;
@@ -45,19 +50,19 @@ public class ExclusiveGatewayBehavior extends AbstractBehavior {
       }
       
       if (sequenceFlow.getProperty("id").equals(defaultFlowId)) {
-        defaultFlow = sequenceFlow;
+        defaultSequenceFlow = sequenceFlow;
       } else if (conditionExpression != null) {
         
-        // TODO: implement.... for the moment always true
-        nextNode = sequenceFlow.getEndNode();
+        // TODO: implement expressions! .... for the moment always true
+        nextActivity = sequenceFlow.getTargetActivity();
       }
       
     }
     
-    if (nextNode != null) {
-      gotoNode(nextNode, execution, engineOperations);
-    } else if (defaultFlow != null) {
-      gotoNode(defaultFlow.getEndNode(), execution, engineOperations);
+    if (nextActivity != null) {
+      goToNextActivity(nextActivity, execution, engineOperations);
+    } else if (defaultSequenceFlow != null) {
+      goToNextActivity(defaultSequenceFlow.getTargetActivity(), execution, engineOperations);
     } else {
       throw new RuntimeException("Could not find a sequenceflow with true condition nor default flow");
     }

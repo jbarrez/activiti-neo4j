@@ -10,20 +10,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.activiti.neo4j.manager;
-
-import org.neo4j.graphdb.GraphDatabaseService;
+package org.activiti.neo4j;
 
 
 /**
  * @author Joram Barrez
  */
-public class AbstractDataManager implements DataManager {
+public interface PropertyContainer {
   
-  protected GraphDatabaseService graphDatabaseService;
-  
-  public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
-    this.graphDatabaseService = graphDatabaseService;
-  }
+  boolean hasProperty(String property);
+  Object getProperty(String property);
+  void setProperty(String property, Object value);
+  Object removeProperty(String property);
 
 }

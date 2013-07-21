@@ -1,6 +1,9 @@
 package org.activiti.neo4j;
 import org.activiti.neo4j.behavior.Behavior;
 import org.activiti.neo4j.behavior.BehaviorMapping;
+import org.activiti.neo4j.entity.NodeBasedExecution;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /* Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,15 +24,17 @@ import org.activiti.neo4j.behavior.BehaviorMapping;
  */
 public class CoreImpl implements Core {
   
+  private Logger logger = LoggerFactory.getLogger(CoreImpl.class);
+  
   protected BehaviorMapping behaviorMapping;
   
   public void continueProcess(final CommandContext<?> commandContext, final Execution execution) {
     commandContext.getAgenda().add(new Runnable() {
       
       public void run() {
-//      System.out.println("Next node is " + execution.getEndNode().getProperty("id"));
-        String type = (String) execution.getEndNode().getProperty("type");
+        String type = (String) execution.getActivity().getProperty("type");
         Behavior behavior = behaviorMapping.getBehaviorForType(type);
+        System.out.println("Execution behaviour " + behavior);
         behavior.execute(execution, commandContext);
       }
     });
@@ -39,8 +44,9 @@ public class CoreImpl implements Core {
     commandContext.getAgenda().add(new Runnable() {
       
       public void run() {
-        String type = (String) execution.getEndNode().getProperty("type");
+        String type = (String) execution.getActivity().getProperty("type");
         Behavior behavior = behaviorMapping.getBehaviorForType(type);
+        System.out.println("Signaling " + behavior);
         behavior.signal(execution, commandContext);
       }
     });

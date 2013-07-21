@@ -3,43 +3,36 @@ package org.activiti.neo4j.behavior;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.activiti.neo4j.Activity;
 import org.activiti.neo4j.EngineOperations;
 import org.activiti.neo4j.Execution;
-import org.activiti.neo4j.RelTypes;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.activiti.neo4j.SequenceFlow;
 
 
 public abstract class AbstractBehavior implements Behavior {
   
   protected void leave(Execution execution, EngineOperations engineOperations) {
-    Node processInstanceNode = execution.getStartNode();
-    Node currentActivityNode = execution.getEndNode();
     
-//    System.out.println("Entered " + currentActivityNode.getProperty("id"));
-    
-    List<Node> nextNodes = new ArrayList<Node>();
-    for (Relationship sequenceFlow : currentActivityNode.getRelationships(Direction.OUTGOING, RelTypes.SEQ_FLOW)) {
-      nextNodes.add(sequenceFlow.getEndNode());
+    List<Execution> outgoingExecutions = new ArrayList<Execution>();
+    for (SequenceFlow sequenceFlow : execution.getActivity().getOutgoingSequenceFlow()) {
+      Activity targetActivity = sequenceFlow.getTargetActivity();
+      outgoingExecutions.add(execution.getProcessInstance().createNewExecutionInActivity(targetActivity));
     }
     
-    // Move execution to next activities
     // TODO: is it possible to reuse this execute for a little bit extra performance?
+    // Or is this just overengineering? (we did it for exections in regular activiti ...)
     execution.delete();
     
-    for (Node nextNode : nextNodes) {
-      Relationship outgoingExecution = processInstanceNode.createRelationshipTo(nextNode, RelTypes.EXECUTION);
-      engineOperations.continueProcess(new Execution(outgoingExecution));
+    for (Execution outgoingExecuions : outgoingExecutions) {
+      engineOperations.continueProcess(outgoingExecuions);
     }
+    
   }
   
-  protected void gotoNode(Node node, Execution execution, EngineOperations engineOperations) {
+  protected void goToNextActivity(Activity activity, Execution execution, EngineOperations engineOperations) {
+    Execution outgoingExecution = execution.getProcessInstance().createNewExecutionInActivity(activity);
     execution.delete();
-    
-    Node processInstanceNode = execution.getStartNode();
-    Relationship outgoingExecution = processInstanceNode.createRelationshipTo(node, RelTypes.EXECUTION);
-    engineOperations.continueProcess(new Execution(outgoingExecution));
+    engineOperations.continueProcess(outgoingExecution);
   }
   
   public void signal(Execution execution, EngineOperations engineOperations) {

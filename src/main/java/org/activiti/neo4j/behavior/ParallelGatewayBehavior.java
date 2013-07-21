@@ -3,27 +3,20 @@ package org.activiti.neo4j.behavior;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.activiti.neo4j.Activity;
 import org.activiti.neo4j.EngineOperations;
 import org.activiti.neo4j.Execution;
-import org.activiti.neo4j.RelTypes;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.activiti.neo4j.ProcessInstance;
 
 
 public class ParallelGatewayBehavior extends AbstractBehavior {
 
   public void execute(Execution execution, EngineOperations engineOperations) {
     
+    Activity parallelGatewayActivity = execution.getActivity();
+    
     // Check the number of incoming to see if we have to join or fork
-    Node parallelGwNode = execution.getEndNode();
-    Iterable<Relationship> incomingSequenceFlows = parallelGwNode.getRelationships(Direction.INCOMING, RelTypes.SEQ_FLOW);
-
-    // Is there a better way to do a count? Maybe just store it as property?
-    int incomingSequenceFlowCount = 0;
-    for (Relationship incomingSequenceFlow : incomingSequenceFlows) {
-      incomingSequenceFlowCount++;
-    }
+    int incomingSequenceFlowCount = execution.getActivity().getIncomingSequenceFlow().size();
     
     if (incomingSequenceFlowCount == 1) {
       
@@ -36,23 +29,23 @@ public class ParallelGatewayBehavior extends AbstractBehavior {
       List<Execution> waitingExecutions = new ArrayList<Execution>();
       waitingExecutions.add(execution);
       
-      Node processInstanceNode = execution.getStartNode();
-      for (Relationship exec : processInstanceNode.getRelationships(Direction.OUTGOING, RelTypes.EXECUTION)){
-        if (exec.getEndNode().getProperty("id").equals(parallelGwNode.getProperty("id"))) {
-          waitingExecutions.add(new Execution(exec));
+      ProcessInstance processInstance = execution.getProcessInstance();
+      for (Execution e : processInstance.getExecutions()){
+        if (e.getActivity().getId().equals(execution.getActivity().getId())) {
+          waitingExecutions.add(e);
         }
       }
       
       if (waitingExecutions.size() == incomingSequenceFlowCount) {
         
         // Remove all executions
-        for (Execution exec : waitingExecutions) {
-          exec.delete();
+        for (Execution e : waitingExecutions) {
+          e.delete();
         }
         
         // Create new one to leave gateway
-        Relationship outgoingExecution = processInstanceNode.createRelationshipTo(parallelGwNode, RelTypes.EXECUTION);
-        leave(new Execution(outgoingExecution), engineOperations);
+        Execution outgoingExecution = processInstance.createNewExecutionInActivity(parallelGatewayActivity);
+        leave(outgoingExecution, engineOperations);
         
       }
       

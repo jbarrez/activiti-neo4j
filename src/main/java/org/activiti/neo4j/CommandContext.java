@@ -14,6 +14,8 @@ package org.activiti.neo4j;
 
 import java.util.LinkedList;
 
+import org.activiti.neo4j.manager.ExecutionManager;
+
 
 /**
  * @author Joram Barrez
@@ -21,6 +23,8 @@ import java.util.LinkedList;
 public class CommandContext<T> implements EngineOperations {
   
   protected Core core;
+  protected ExecutionManager executionManager;
+  
   protected LinkedList<Runnable> agenda = new LinkedList<Runnable>();
   protected T result = null;
   
@@ -58,6 +62,14 @@ public class CommandContext<T> implements EngineOperations {
 
   public void setCore(Core core) {
     this.core = core;
+  }
+
+  public ExecutionManager getExecutionManager() {
+    return executionManager;
+  }
+
+  public void setExecutionManager(ExecutionManager executionManager) {
+    this.executionManager = executionManager;
   }
   
 }

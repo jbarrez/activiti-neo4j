@@ -12,16 +12,18 @@
  */
 package org.activiti.neo4j;
 
+import java.util.List;
 
 
 
 /**
  * @author Joram Barrez
  */
-public interface Core {
+public interface Activity extends PropertyContainer {
   
-  void continueProcess(CommandContext<?> commandContext, Execution execution);
+  String getId();
   
-  void signal(CommandContext<?> commandContext, Execution execution);
-
+  List<SequenceFlow> getIncomingSequenceFlow();
+  List<SequenceFlow> getOutgoingSequenceFlow();
+  
 }

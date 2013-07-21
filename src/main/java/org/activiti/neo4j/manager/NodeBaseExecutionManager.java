@@ -10,18 +10,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.activiti.neo4j;
+package org.activiti.neo4j.manager;
 
-
+import org.activiti.neo4j.Execution;
+import org.activiti.neo4j.entity.NodeBasedExecution;
+import org.neo4j.graphdb.GraphDatabaseService;
 
 
 /**
  * @author Joram Barrez
  */
-public interface Core {
+public class NodeBaseExecutionManager implements ExecutionManager {
   
-  void continueProcess(CommandContext<?> commandContext, Execution execution);
+  protected GraphDatabaseService graphDb;
   
-  void signal(CommandContext<?> commandContext, Execution execution);
+  public Execution getExecutionById(long id) {
+    return new NodeBasedExecution(graphDb.getRelationshipById(id));
+  }
+
+  public GraphDatabaseService getGraphDb() {
+    return graphDb;
+  }
+
+  public void setGraphDb(GraphDatabaseService graphDb) {
+    this.graphDb = graphDb;
+  }
+  
 
 }

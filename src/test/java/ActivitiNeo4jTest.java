@@ -40,7 +40,6 @@ public class ActivitiNeo4jTest {
   
   @Test
   public void simpleOneTaskProcessTest() throws Exception {
-
     // Deploy process
     InputStream inputStream = this.getClass().getResourceAsStream("one-task-process.bpmn20.xml");
     ProcessDefinition processDefinition = processEngine.getRepositoryService().deploy(inputStream);

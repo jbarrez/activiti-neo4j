@@ -1,5 +1,6 @@
 package org.activiti.neo4j;
 
+import org.activiti.neo4j.entity.NodeBasedExecution;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -21,6 +22,8 @@ public class RuntimeService {
       
       public void execute(CommandContext<Void> commandContext) {
         // Find process definition node
+        
+        // TODO: encapsulate in a manager!
         Index<Node> processDefinitionIndex = graphDb.index().forNodes(Constants.PROCESS_DEFINITION_INDEX);
         Node processDefinitionNode = processDefinitionIndex.get(Constants.INDEX_KEY_PROCESS_DEFINITION_KEY, key).getSingle();
         Node startEventNode = processDefinitionNode.getRelationships(Direction.OUTGOING, RelTypes.IS_STARTED_FROM).iterator().next().getEndNode();
@@ -40,7 +43,7 @@ public class RuntimeService {
         Relationship relationShipExecution = processInstanceNode.createRelationshipTo(startEventNode, RelTypes.EXECUTION);
         
         // Execute the process
-        Execution execution = new Execution(relationShipExecution);
+        Execution execution = new NodeBasedExecution(relationShipExecution);
         commandContext.continueProcess(execution);
       }
       

@@ -12,16 +12,20 @@
  */
 package org.activiti.neo4j;
 
-
+import java.util.List;
 
 
 /**
  * @author Joram Barrez
  */
-public interface Core {
+public interface ProcessInstance {
   
-  void continueProcess(CommandContext<?> commandContext, Execution execution);
-  
-  void signal(CommandContext<?> commandContext, Execution execution);
+  void setVariable(String variableName, Object variableValue);
 
+  Execution createNewExecutionInActivity(Activity activity);
+  
+  List<Execution> getExecutions();
+  
+  void delete();
+  
 }

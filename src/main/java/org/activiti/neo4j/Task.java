@@ -1,6 +1,8 @@
 package org.activiti.neo4j;
 
-
+/**
+ * @author jbarrez
+ */
 public class Task {
   
   protected long id;

@@ -12,10 +12,10 @@
  */
 package org.activiti.neo4j.behavior;
 
+import org.activiti.neo4j.Activity;
 import org.activiti.neo4j.EngineOperations;
 import org.activiti.neo4j.Execution;
 import org.activiti.neo4j.JavaDelegate;
-import org.neo4j.graphdb.Node;
 
 
 
@@ -30,8 +30,8 @@ public class ServiceTaskBehaviour extends AbstractBehavior {
   }
 
   protected void executeDelegate(Execution execution) {
-    Node activityNode = execution.getEndNode();
-    String className = (String) activityNode.getProperty("class");
+    Activity activity = execution.getActivity();
+    String className = (String) activity.getProperty("class");
     
     try {
       Class<?> clazz = Class.forName(className);

@@ -14,6 +14,10 @@ package org.activiti.neo4j;
 
 import org.activiti.neo4j.behavior.BehaviorMapping;
 import org.activiti.neo4j.behavior.BehaviorMappingImpl;
+import org.activiti.neo4j.manager.ExecutionManager;
+import org.activiti.neo4j.manager.NodeBaseExecutionManager;
+import org.activiti.neo4j.manager.NodeBasedTaskManager;
+import org.activiti.neo4j.manager.TaskManager;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 
@@ -26,6 +30,8 @@ public class ProcessEngineConfiguration {
   protected BehaviorMapping behaviorMapping;
   protected Core core;
   protected CommandExecutor commandExecutor;
+  protected ExecutionManager executionManager;
+  protected TaskManager taskManager;
   
   public ProcessEngine buildProcessEngine() {
     ProcessEngine processEngine = new ProcessEngine();
@@ -33,6 +39,7 @@ public class ProcessEngineConfiguration {
     
     initBehaviorMapping();
     initCore();
+    initManagers();
     initCommandExecutor(processEngine);
     initServices(processEngine);
     
@@ -48,10 +55,21 @@ public class ProcessEngineConfiguration {
     core.setBehaviorMapping(behaviorMapping);
     this.core = core;
   }
+  
+  protected void initManagers() {
+    NodeBaseExecutionManager nodeBaseExecutionManager = new NodeBaseExecutionManager();
+    nodeBaseExecutionManager.setGraphDb(graphDatabaseService);
+    this.executionManager = nodeBaseExecutionManager;
+    
+    NodeBasedTaskManager nodeBasedTaskManager = new NodeBasedTaskManager();
+    nodeBasedTaskManager.setGraphDb(graphDatabaseService);
+    this.taskManager = nodeBasedTaskManager;
+  }
 
   protected void initCommandExecutor(ProcessEngine processEngine) {
     CommandExecutor commandExecutor = new CommandExecutor(graphDatabaseService);
     commandExecutor.setCore(core);
+    commandExecutor.setExecutionManager(executionManager);
     
     processEngine.setCommandExecutor(commandExecutor);
     this.commandExecutor = commandExecutor;
@@ -64,7 +82,8 @@ public class ProcessEngineConfiguration {
     RuntimeService runtimeService = new RuntimeService(graphDatabaseService, commandExecutor);
     processEngine.setRuntimeService(runtimeService);
     
-    TaskService taskService = new TaskService(graphDatabaseService, commandExecutor);
+    TaskService taskService = new TaskService(commandExecutor);
+    taskService.setTaskManager(taskManager);
     processEngine.setTaskService(taskService);
   }
   

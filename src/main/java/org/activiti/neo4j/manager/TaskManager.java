@@ -12,14 +12,16 @@
  */
 package org.activiti.neo4j.manager;
 
-import org.neo4j.graphdb.GraphDatabaseService;
+import java.util.List;
+
+import org.activiti.neo4j.Task;
 
 
 /**
  * @author Joram Barrez
  */
-public interface DataManager {
+public interface TaskManager {
   
-  void setGraphDatabaseService(GraphDatabaseService graphDatabaseService);
+  public List<Task> getTasksByAssignee(String assignee);
 
 }

@@ -13,15 +13,12 @@
 package org.activiti.neo4j;
 
 
-
-
 /**
  * @author Joram Barrez
  */
-public interface Core {
+public interface SequenceFlow extends PropertyContainer {
   
-  void continueProcess(CommandContext<?> commandContext, Execution execution);
+  Activity getSourceActivity();
+  Activity getTargetActivity();
   
-  void signal(CommandContext<?> commandContext, Execution execution);
-
 }

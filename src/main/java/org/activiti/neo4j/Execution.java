@@ -12,89 +12,22 @@
  */
 package org.activiti.neo4j;
 
-import java.util.Iterator;
-
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 
 /**
  * @author Joram Barrez
  */
-public class Execution {
-
-  // An execution is actually a thin wrapper around a Neo4j relationship
-  // adding al sorts of convenience methods that hide the internal bits
-  protected Relationship relationship;
-
-  public Execution(Relationship relationship) {
-    this.relationship = relationship;
-  }
-
-  public Node getProcessInstance() {
-    return relationship.getStartNode();
-  }
-
-  public void setVariable(String variableName, Object variableValue) {
-
-    // TODO: need to have variable local, which is a bit trickier,
-    // since executions are relationships.
-    // Perhaps this needs to be revised
-    
-    Node processInstanceNode = getProcessInstance();
-
-    // Check if the variable node already exists
-    Iterator<Relationship> variableRelationShipIterator = 
-            processInstanceNode.getRelationships(Direction.OUTGOING, RelTypes.VARIABLE).iterator();
-    
-    Node variableNode = null;
-    if (variableRelationShipIterator.hasNext()) {
-      Relationship variableRelationship = variableRelationShipIterator.next();
-      variableNode = variableRelationship.getEndNode();
-    } else {
-      variableNode = processInstanceNode.getGraphDatabase().createNode();
-      processInstanceNode.createRelationshipTo(variableNode, RelTypes.VARIABLE);
-    }
-    
-    variableNode.setProperty(variableName, variableValue);
-  }
-
-  public Object getVariable(String variableName) {
-    
-    Node processInstanceNode = getProcessInstance();
-    Iterator<Relationship> variableRelationshipIterator = processInstanceNode.getRelationships(RelTypes.VARIABLE).iterator();
-    
-    if (variableRelationshipIterator.hasNext()) {
-      Node variableNode = variableRelationshipIterator.next().getEndNode();
-      return variableNode.getProperty(variableName);
-    } else {
-      // No variable associated with this process instance
-      return null;
-    }
-  }
+public interface Execution extends PropertyContainer {
   
-  public Node getStartNode() {
-    return relationship.getStartNode();
-  }
+  void delete();
   
-  public Node getEndNode() {
-    return relationship.getEndNode();
-  }
+  ProcessInstance getProcessInstance();
   
-  public void delete() {
-    relationship.delete();
-  }
+  Activity getActivity();
   
-  public void setProperty(String property, Object value) {
-    relationship.setProperty(property, value);
-  }
+  void setVariable(String name, Object value);
   
-  public Object removeProperty(String property) {
-    return relationship.removeProperty(property);
-  }
+  Object getVariable(String name);
   
-  public Relationship getRelationship() {
-    return relationship;
-  }
+  void addToIndex(String namespace, String key, Object value);
 
 }

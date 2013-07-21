@@ -1,26 +1,22 @@
 package org.activiti.neo4j.behavior;
 
+import org.activiti.neo4j.Activity;
 import org.activiti.neo4j.Constants;
 import org.activiti.neo4j.EngineOperations;
 import org.activiti.neo4j.Execution;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.index.Index;
 
 
 public class UserTaskBehavior extends AbstractBehavior {
   
   public void execute(Execution execution, EngineOperations engineOperations) {
+    
+    Activity taskActivity = execution.getActivity();
 
-    Node taskNode = execution.getEndNode();
-//    System.out.println("Entered user task " + taskNode.getProperty("id"));
-    
     execution.setProperty("isTask", true);
-    execution.setProperty("name", taskNode.getProperty("name"));
+    execution.setProperty("name", taskActivity.getProperty("name"));
     
-    
-    Index<Relationship> taskIndex = execution.getRelationship().getGraphDatabase().index().forRelationships(Constants.TASK_INDEX);
-    taskIndex.add(execution.getRelationship(), Constants.INDEX_KEY_TASK_ASSIGNEE, taskNode.getProperty("assignee"));
+    // Add to task index
+    execution.addToIndex(Constants.TASK_INDEX, Constants.INDEX_KEY_TASK_ASSIGNEE, taskActivity.getProperty("assignee"));
     
     // No leave(), task == wait state
   }
@@ -29,6 +25,7 @@ public class UserTaskBehavior extends AbstractBehavior {
   public void signal(Execution execution, EngineOperations engineOperations) {
     
     // remove properties from execution
+    // TODO: need to find a better way to manage this
     execution.removeProperty("isTask");
     execution.removeProperty("name");
     

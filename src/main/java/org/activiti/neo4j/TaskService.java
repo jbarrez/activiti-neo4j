@@ -1,20 +1,16 @@
 package org.activiti.neo4j;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.index.Index;
+import org.activiti.neo4j.manager.TaskManager;
 
 public class TaskService {
 
   // TODO: can be put in a command service super class
-  protected GraphDatabaseService graphDb;
   protected CommandExecutor commandExecutor;
+  protected TaskManager taskManager;
 
-  public TaskService(GraphDatabaseService graphDb, CommandExecutor commandExecutor) {
-    this.graphDb = graphDb;
+  public TaskService(CommandExecutor commandExecutor) {
     this.commandExecutor = commandExecutor;
   }
 
@@ -22,16 +18,7 @@ public class TaskService {
     return commandExecutor.execute(new Command<List<Task>>() {
       
       public void execute(CommandContext<List<Task>> commandContext) {
-        List<Task> tasks = new ArrayList<Task>();
-        commandContext.setResult(tasks);
-        
-        Index<Relationship> taskIndex = graphDb.index().forRelationships(Constants.TASK_INDEX);
-        for (Relationship execution : taskIndex.get(Constants.INDEX_KEY_TASK_ASSIGNEE, assignee)) {
-          Task task = new Task();
-          task.setId(execution.getId());
-          task.setName((String) execution.getProperty("name"));
-          tasks.add(task);
-        }
+        commandContext.setResult(taskManager.getTasksByAssignee(assignee));
       }
       
     });
@@ -41,11 +28,18 @@ public class TaskService {
     commandExecutor.execute(new Command<Void>() {
       
       public void execute(CommandContext<Void> commandContext) {
-        Relationship executionRelationShip = graphDb.getRelationshipById(taskId);
-        commandContext.signal(new Execution(executionRelationShip));
+        commandContext.signal(commandContext.getExecutionManager().getExecutionById(taskId));
       }
       
     });
+  }
+
+  public TaskManager getTaskManager() {
+    return taskManager;
+  }
+  
+  public void setTaskManager(TaskManager taskManager) {
+    this.taskManager = taskManager;
   }
 
 }

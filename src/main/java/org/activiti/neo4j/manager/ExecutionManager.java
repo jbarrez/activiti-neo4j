@@ -12,12 +12,14 @@
  */
 package org.activiti.neo4j.manager;
 
+import org.activiti.neo4j.Execution;
+
 
 /**
  * @author Joram Barrez
  */
-public class ExecutionManager extends AbstractDataManager {
+public interface ExecutionManager {
   
-  
+  Execution getExecutionById(long id);
 
 }
