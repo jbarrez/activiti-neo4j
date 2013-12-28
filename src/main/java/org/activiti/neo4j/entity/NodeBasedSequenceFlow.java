@@ -14,7 +14,9 @@ package org.activiti.neo4j.entity;
 
 import org.activiti.neo4j.Activity;
 import org.activiti.neo4j.SequenceFlow;
-import org.neo4j.graphdb.Relationship;
+
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
 
 
 /**
@@ -22,31 +24,31 @@ import org.neo4j.graphdb.Relationship;
  */
 public class NodeBasedSequenceFlow implements SequenceFlow {
   
-  protected Relationship sequenceFlowRelationship;
+  protected Edge sequenceFlowRelationship;
   
   protected Activity sourceActivity;
   protected Activity targetActivity;
   
-  public NodeBasedSequenceFlow(Relationship sequenceFlowRelationship) {
+  public NodeBasedSequenceFlow(Edge sequenceFlowRelationship) {
     this.sequenceFlowRelationship = sequenceFlowRelationship;
   }
   
   public Activity getSourceActivity() {
     if (sourceActivity == null) {
-      sourceActivity = new NodeBasedActivity(sequenceFlowRelationship.getStartNode());
+      sourceActivity = new NodeBasedActivity(sequenceFlowRelationship.getVertex(Direction.OUT));
     }
     return sourceActivity;
   }
   
   public Activity getTargetActivity() {
     if (targetActivity == null) {
-      targetActivity = new NodeBasedActivity(sequenceFlowRelationship.getEndNode());
+      targetActivity = new NodeBasedActivity(sequenceFlowRelationship.getVertex(Direction.IN));
     }
     return targetActivity;
   }
 
   public boolean hasProperty(String property) {
-    return sequenceFlowRelationship.hasProperty(property);
+    return (sequenceFlowRelationship.getProperty(property) != null);
   }
 
   public Object getProperty(String property) {

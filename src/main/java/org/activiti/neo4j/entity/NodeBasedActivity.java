@@ -18,28 +18,28 @@ import java.util.List;
 import org.activiti.neo4j.Activity;
 import org.activiti.neo4j.RelTypes;
 import org.activiti.neo4j.SequenceFlow;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Vertex;
 
 /**
  * @author Joram Barrez
  */
 public class NodeBasedActivity implements Activity {
   
-  protected Node activityNode;
+  protected Vertex activityNode;
   protected List<SequenceFlow> incomingSequenceFlows;
   protected List<SequenceFlow> outgoingSequenceFlows;
   
-  public NodeBasedActivity(Node activityNode) {
+  public NodeBasedActivity(Vertex activityNode) {
     this.activityNode = activityNode;
   }
   
   public List<SequenceFlow> getOutgoingSequenceFlow() {
     if (outgoingSequenceFlows == null) {
       outgoingSequenceFlows = new ArrayList<SequenceFlow>();
-      for (Relationship sequenceFlowRelationship : activityNode.getRelationships(Direction.OUTGOING, RelTypes.SEQ_FLOW)) {
+      for (Edge sequenceFlowRelationship : activityNode.getEdges(Direction.OUT, RelTypes.SEQ_FLOW.toString())) {
         outgoingSequenceFlows.add(new NodeBasedSequenceFlow(sequenceFlowRelationship));
       }
     }
@@ -49,7 +49,7 @@ public class NodeBasedActivity implements Activity {
   public List<SequenceFlow> getIncomingSequenceFlow() {
     if (incomingSequenceFlows == null) {
       incomingSequenceFlows = new ArrayList<SequenceFlow>();
-      for (Relationship sequenceFlowRelationship : activityNode.getRelationships(Direction.INCOMING, RelTypes.SEQ_FLOW)) {
+      for (Edge sequenceFlowRelationship : activityNode.getEdges(Direction.IN, RelTypes.SEQ_FLOW.toString())) {
         incomingSequenceFlows.add(new NodeBasedSequenceFlow(sequenceFlowRelationship));
       }
     }
@@ -65,7 +65,7 @@ public class NodeBasedActivity implements Activity {
   }
   
   public boolean hasProperty(String property) {
-    return activityNode.hasProperty(property);
+    return (activityNode.getProperty(property) != null);
   }
   
   public void setProperty(String property, Object value) {
@@ -76,11 +76,11 @@ public class NodeBasedActivity implements Activity {
     return activityNode.removeProperty(property);
   }
   
-  public Node getActivityNode() {
+  public Vertex getActivityNode() {
     return activityNode;
   }
 
-  public void setActivityNode(Node activityNode) {
+  public void setActivityNode(Vertex activityNode) {
     this.activityNode = activityNode;
   }
 

@@ -23,20 +23,20 @@ import org.activiti.bpmn.model.ServiceTask;
 import org.activiti.bpmn.model.StartEvent;
 import org.activiti.bpmn.model.UserTask;
 import org.activiti.neo4j.helper.BpmnModelUtil;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.index.Index;
+
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.Vertex;
 
 public class RepositoryService {
 
-  protected GraphDatabaseService graphDb;
+  protected Graph graphDb;
   protected CommandExecutor commandExecutor;
 
-  protected Map<String, Node> nodeMap;
+  protected Map<String, Vertex> nodeMap;
   protected Set<SequenceFlow> sequenceFlows;
 
-  public RepositoryService(GraphDatabaseService graphDb, CommandExecutor commandExecutor) {
+  public RepositoryService(Graph graphDb, CommandExecutor commandExecutor) {
     this.graphDb = graphDb;
     this.commandExecutor = commandExecutor;
   }
@@ -66,7 +66,7 @@ public class RepositoryService {
         // Create Node representation
         ProcessDefinition processDefinition = null;
 
-        nodeMap = new HashMap<String, Node>();
+        nodeMap = new HashMap<String, Vertex>();
         sequenceFlows = new HashSet<SequenceFlow>();
         for (FlowElement flowElement : process.getFlowElements()) {
           if (flowElement instanceof StartEvent) {
@@ -88,22 +88,25 @@ public class RepositoryService {
         processSequenceFlows();
 
         // Create process definition node
-        Node processDefinitionNode = graphDb.createNode();
+        Vertex processDefinitionNode = graphDb.addVertex(null);
         processDefinition = new ProcessDefinition();
-        processDefinition.setId(processDefinitionNode.getId());
+        processDefinition.setId(processDefinitionNode.getId().toString());
         processDefinition.setKey(process.getId());
 
         // Temporary (for visualization)
-        graphDb.getReferenceNode().createRelationshipTo(processDefinitionNode, RelTypes.PROCESS_DEFINITION);
+//        graphDb.getReferenceNode().createRelationshipTo(processDefinitionNode, RelTypes.PROCESS_DEFINITION);
 
         // Create relationship from process definition node to start event
         StartEvent startEvent = BpmnModelUtil.findFlowElementsOfType(process, StartEvent.class).get(0);
-        Node startEventNode = nodeMap.get(startEvent.getId());
-        processDefinitionNode.createRelationshipTo(startEventNode, RelTypes.IS_STARTED_FROM);
+        Vertex startEventNode = nodeMap.get(startEvent.getId());
+        processDefinitionNode.addEdge(RelTypes.IS_STARTED_FROM.toString(), startEventNode);
 
         // Add process definition to index
-        Index<Node> processDefinitionIndex = graphDb.index().forNodes(Constants.PROCESS_DEFINITION_INDEX);
-        processDefinitionIndex.add(processDefinitionNode, Constants.INDEX_KEY_PROCESS_DEFINITION_KEY, processDefinition.getKey());
+//        Index<Node> processDefinitionIndex = graphDb.index().forNodes(Constants.PROCESS_DEFINITION_INDEX);
+//        processDefinitionIndex.add(processDefinitionNode, Constants.INDEX_KEY_PROCESS_DEFINITION_KEY, processDefinition.getKey());
+        
+        //TODO configure automatic property index
+        processDefinitionNode.setProperty(Constants.INDEX_KEY_PROCESS_DEFINITION_KEY, processDefinition.getKey());
         
         commandContext.setResult(processDefinition);
       }
@@ -111,22 +114,22 @@ public class RepositoryService {
     });
   }
   protected void addStartEvent(StartEvent startEvent) {
-    Node startEventNode = createNode(startEvent);
+    Vertex startEventNode = createNode(startEvent);
     startEventNode.setProperty("type", Constants.TYPE_START_EVENT);
   }
 
   protected void addEndEvent(EndEvent endEvent) {
-    Node endEventNode = createNode(endEvent);
+    Vertex endEventNode = createNode(endEvent);
     endEventNode.setProperty("type", Constants.TYPE_END_EVENT);
   }
 
   protected void addParallelGateway(ParallelGateway parallelGateway) {
-    Node parallelGwNode = createNode(parallelGateway);
+    Vertex parallelGwNode = createNode(parallelGateway);
     parallelGwNode.setProperty("type", Constants.TYPE_PARALLEL_GATEWAY);
   }
   
   protected void addExclusiveGateway(ExclusiveGateway exclusiveGateway) {
-    Node exclusiveGwNode = createNode(exclusiveGateway);
+    Vertex exclusiveGwNode = createNode(exclusiveGateway);
     exclusiveGwNode.setProperty("type", Constants.TYPE_EXCLUSIVE_GATEWAY);
     
     if (exclusiveGateway.getDefaultFlow() != null) {
@@ -135,7 +138,7 @@ public class RepositoryService {
   }
 
   protected void addUserTask(UserTask userTask) {
-    Node userTaskNode = createNode(userTask);
+    Vertex userTaskNode = createNode(userTask);
     userTaskNode.setProperty("type", Constants.TYPE_USER_TASK);
 
     if (userTask.getName() != null) {
@@ -148,14 +151,14 @@ public class RepositoryService {
   }
 
   protected void addServiceTask(ServiceTask serviceTask) {
-    Node serviceTaskNode = createNode(serviceTask);
+    Vertex serviceTaskNode = createNode(serviceTask);
     serviceTaskNode.setProperty("type", Constants.TYPE_SERVICE_TASK);
     serviceTaskNode.setProperty("class", serviceTask.getImplementation());
   }
   
-  protected Node createNode(FlowNode flowNode) {
-    Node node = graphDb.createNode();
-    node.setProperty("id", flowNode.getId());
+  protected Vertex createNode(FlowNode flowNode) {
+    Vertex node = graphDb.addVertex(null);
+    node.setProperty("flow_id", flowNode.getId());
     
     nodeMap.put(flowNode.getId(), node);
     
@@ -164,11 +167,11 @@ public class RepositoryService {
 
   protected void processSequenceFlows() {
     for (SequenceFlow sequenceFlow : sequenceFlows) {
-      Node sourceNode = nodeMap.get(sequenceFlow.getSourceRef());
-      Node targetNode = nodeMap.get(sequenceFlow.getTargetRef());
+      Vertex sourceNode = nodeMap.get(sequenceFlow.getSourceRef());
+      Vertex targetNode = nodeMap.get(sequenceFlow.getTargetRef());
 
-      Relationship sequenceflowRelationship = sourceNode.createRelationshipTo(targetNode, RelTypes.SEQ_FLOW);
-      sequenceflowRelationship.setProperty("id", sequenceFlow.getId());
+      Edge sequenceflowRelationship = sourceNode.addEdge(RelTypes.SEQ_FLOW.toString(), targetNode);
+      sequenceflowRelationship.setProperty("flow_id", sequenceFlow.getId());
       if (sequenceFlow.getConditionExpression() != null) {
         sequenceflowRelationship.setProperty("condition", sequenceFlow.getConditionExpression());
       }

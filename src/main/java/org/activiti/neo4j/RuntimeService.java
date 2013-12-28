@@ -1,18 +1,18 @@
 package org.activiti.neo4j;
 
 import org.activiti.neo4j.entity.NodeBasedExecution;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.index.Index;
+
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.Vertex;
 
 public class RuntimeService {
 
-  protected GraphDatabaseService graphDb;
+  protected Graph graphDb;
   protected CommandExecutor commandExecutor;
 
-  public RuntimeService(GraphDatabaseService graphDb, CommandExecutor commandExecutor) {
+  public RuntimeService(Graph graphDb, CommandExecutor commandExecutor) {
     this.graphDb = graphDb;
     this.commandExecutor = commandExecutor;
   }
@@ -24,13 +24,12 @@ public class RuntimeService {
         // Find process definition node
         
         // TODO: encapsulate in a manager!
-        Index<Node> processDefinitionIndex = graphDb.index().forNodes(Constants.PROCESS_DEFINITION_INDEX);
-        Node processDefinitionNode = processDefinitionIndex.get(Constants.INDEX_KEY_PROCESS_DEFINITION_KEY, key).getSingle();
-        Node startEventNode = processDefinitionNode.getRelationships(Direction.OUTGOING, RelTypes.IS_STARTED_FROM).iterator().next().getEndNode();
+        Vertex processDefinitionNode = graphDb.getVertices(Constants.INDEX_KEY_PROCESS_DEFINITION_KEY, key).iterator().next();
+        Vertex startEventNode = processDefinitionNode.getEdges(Direction.OUT, RelTypes.IS_STARTED_FROM.toString()).iterator().next().getVertex(Direction.IN);
 
         // Create process instance node and link it to the process definition
-        Node processInstanceNode = graphDb.createNode();
-        processDefinitionNode.createRelationshipTo(processInstanceNode, RelTypes.PROCESS_INSTANCE);
+        Vertex processInstanceNode = graphDb.addVertex(null);
+        processDefinitionNode.addEdge(RelTypes.PROCESS_INSTANCE.toString(), processInstanceNode);
                 
 //        // Traverse the process definition
 //        TraversalDescription traversalDescription = Traversal.description()
@@ -40,10 +39,10 @@ public class RuntimeService {
 //        Traverser traverser = traversalDescription.traverse(startEventNode);
         
         // Add one execution link to the startnode
-        Relationship relationShipExecution = processInstanceNode.createRelationshipTo(startEventNode, RelTypes.EXECUTION);
+        Edge relationShipExecution = processInstanceNode.addEdge(RelTypes.EXECUTION.toString(), startEventNode);
         
         // Execute the process
-        Execution execution = new NodeBasedExecution(relationShipExecution);
+        Execution execution = new NodeBasedExecution(graphDb, relationShipExecution);
         commandContext.continueProcess(execution);
       }
       

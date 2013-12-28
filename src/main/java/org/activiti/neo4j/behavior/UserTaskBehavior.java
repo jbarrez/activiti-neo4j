@@ -14,9 +14,7 @@ public class UserTaskBehavior extends AbstractBehavior {
 
     execution.setProperty("isTask", true);
     execution.setProperty("name", taskActivity.getProperty("name"));
-    
-    // Add to task index
-    execution.addToIndex(Constants.TASK_INDEX, Constants.INDEX_KEY_TASK_ASSIGNEE, taskActivity.getProperty("assignee"));
+    execution.setProperty(Constants.INDEX_KEY_TASK_ASSIGNEE, taskActivity.getProperty("assignee"));
     
     // No leave(), task == wait state
   }
@@ -28,6 +26,7 @@ public class UserTaskBehavior extends AbstractBehavior {
     // TODO: need to find a better way to manage this
     execution.removeProperty("isTask");
     execution.removeProperty("name");
+    execution.removeProperty(Constants.INDEX_KEY_TASK_ASSIGNEE);
     
     // Leave step
     leave(execution, engineOperations);

@@ -28,6 +28,4 @@ public interface Execution extends PropertyContainer {
   
   Object getVariable(String name);
   
-  void addToIndex(String namespace, String key, Object value);
-
 }

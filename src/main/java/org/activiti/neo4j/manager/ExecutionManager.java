@@ -20,6 +20,6 @@ import org.activiti.neo4j.Execution;
  */
 public interface ExecutionManager {
   
-  Execution getExecutionById(long id);
+  Execution getExecutionById(String id);
 
 }

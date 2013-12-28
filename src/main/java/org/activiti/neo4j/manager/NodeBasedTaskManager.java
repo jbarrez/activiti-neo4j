@@ -17,9 +17,9 @@ import java.util.List;
 
 import org.activiti.neo4j.Constants;
 import org.activiti.neo4j.Task;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.index.Index;
+
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Graph;
 
 
 /**
@@ -27,25 +27,25 @@ import org.neo4j.graphdb.index.Index;
  */
 public class NodeBasedTaskManager implements TaskManager {
   
-  protected GraphDatabaseService graphDb;
+  protected Graph graphDb;
   
   public List<Task> getTasksByAssignee(String assignee) {
     List<Task> tasks = new ArrayList<Task>();
-    Index<Relationship> taskIndex = graphDb.index().forRelationships(Constants.TASK_INDEX);
-    for (Relationship execution : taskIndex.get(Constants.INDEX_KEY_TASK_ASSIGNEE, assignee)) {
+    
+    for (Edge execution : graphDb.query().has(Constants.INDEX_KEY_TASK_ASSIGNEE, assignee).edges()) {
       Task task = new Task();
-      task.setId(execution.getId());
+      task.setId(execution.getId().toString());
       task.setName((String) execution.getProperty("name"));
       tasks.add(task);
     }
     return tasks;
   }
 
-  public GraphDatabaseService getGraphDb() {
+  public Graph getGraphDb() {
     return graphDb;
   }
 
-  public void setGraphDb(GraphDatabaseService graphDb) {
+  public void setGraphDb(Graph graphDb) {
     this.graphDb = graphDb;
   }
   
