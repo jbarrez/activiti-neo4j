@@ -1,11 +1,11 @@
 package org.activiti.neo4j;
 
-import org.neo4j.graphdb.GraphDatabaseService;
+import com.tinkerpop.blueprints.Graph;
 
 
 public class ProcessEngine {
   
-  protected GraphDatabaseService graphDatabaseService;
+  protected Graph graph;
 
   protected RepositoryService repositoryService;
   protected RuntimeService runtimeService;
@@ -17,12 +17,12 @@ public class ProcessEngine {
     
   }
   
-  public GraphDatabaseService getGraphDatabaseService() {
-    return graphDatabaseService;
+  public Graph getGraph() {
+    return graph;
   }
   
-  public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
-    this.graphDatabaseService = graphDatabaseService;
+  public void setGraph(Graph graph) {
+    this.graph = graph;
   }
 
   public RepositoryService getRepositoryService() {

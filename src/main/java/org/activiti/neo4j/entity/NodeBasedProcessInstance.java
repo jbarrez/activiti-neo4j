@@ -20,9 +20,11 @@ import org.activiti.neo4j.Activity;
 import org.activiti.neo4j.Execution;
 import org.activiti.neo4j.ProcessInstance;
 import org.activiti.neo4j.RelTypes;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.Vertex;
 
 
 /**
@@ -30,39 +32,42 @@ import org.neo4j.graphdb.Relationship;
  */
 public class NodeBasedProcessInstance implements ProcessInstance {
   
-  protected Node processInstanceNode;
+  protected Graph graphDb;
   
-  public NodeBasedProcessInstance(Node processInstanceNode) {
+  protected Vertex processInstanceNode;
+  
+  public NodeBasedProcessInstance(Graph graphDb, Vertex processInstanceNode) {
+    this.graphDb = graphDb;
     this.processInstanceNode = processInstanceNode;
   }
 
   public void setVariable(String variableName, Object variableValue) {
-    Node variableNode = getVariableNode();
+    Vertex variableNode = getVariableNode();
     if (variableNode == null) {
-      variableNode = processInstanceNode.getGraphDatabase().createNode();
-      processInstanceNode.createRelationshipTo(variableNode, RelTypes.VARIABLE);
+      variableNode = graphDb.addVertex(null);
+      processInstanceNode.addEdge(RelTypes.VARIABLE.toString(), variableNode);
     }
     
     variableNode.setProperty(variableName, variableValue);
   }
   
-  protected Node getVariableNode() {
-    Iterator<Relationship> variableRelationShipIterator = 
-            processInstanceNode.getRelationships(Direction.OUTGOING, RelTypes.VARIABLE).iterator();
+  protected Vertex getVariableNode() {
+    Iterator<Edge> variableRelationShipIterator = 
+            processInstanceNode.getEdges(Direction.OUT, RelTypes.VARIABLE.toString()).iterator();
     
-    Node variableNode = null;
+    Vertex variableNode = null;
     if (variableRelationShipIterator.hasNext()) {
-      Relationship variableRelationship = variableRelationShipIterator.next();
-      variableNode = variableRelationship.getEndNode();
+      Edge variableRelationship = variableRelationShipIterator.next();
+      variableNode = variableRelationship.getVertex(Direction.IN);
     }
     
     return variableNode;
   }
   
   public Execution createNewExecutionInActivity(Activity activity) {
-    Relationship executionRelationship = processInstanceNode
-            .createRelationshipTo(((NodeBasedActivity) activity).getActivityNode(), RelTypes.EXECUTION);
-    return new NodeBasedExecution(executionRelationship);
+    Edge executionRelationship = processInstanceNode
+            .addEdge(RelTypes.EXECUTION.toString(), ((NodeBasedActivity) activity).getActivityNode());
+    return new NodeBasedExecution(graphDb, executionRelationship);
   }
   
   public void delete() {
@@ -72,23 +77,23 @@ public class NodeBasedProcessInstance implements ProcessInstance {
     }
     
     // Variables
-    Node variableNode = getVariableNode();
+    Vertex variableNode = getVariableNode();
     if (variableNode != null) {
-      variableNode.delete();
+      variableNode.remove();
     }
     
     // Delete relationship from process definition to process instance
-    for (Relationship relationship : processInstanceNode.getRelationships(RelTypes.PROCESS_INSTANCE)) {
-      relationship.delete();
+    for (Edge relationship : processInstanceNode.getEdges(Direction.BOTH, RelTypes.PROCESS_INSTANCE.toString())) {
+      relationship.remove();
     }
     
-    processInstanceNode.delete();
+    processInstanceNode.remove();
   }
   
   public List<Execution> getExecutions() {
     List<Execution> executions = new ArrayList<Execution>();
-    for (Relationship executionRelationship : processInstanceNode.getRelationships(Direction.OUTGOING, RelTypes.EXECUTION)) {
-      executions.add(new NodeBasedExecution(executionRelationship));
+    for (Edge executionRelationship : processInstanceNode.getEdges(Direction.OUT, RelTypes.EXECUTION.toString())) {
+      executions.add(new NodeBasedExecution(graphDb, executionRelationship));
     }
     return executions;
   }

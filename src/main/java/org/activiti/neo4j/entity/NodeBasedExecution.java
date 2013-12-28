@@ -18,10 +18,11 @@ import org.activiti.neo4j.Activity;
 import org.activiti.neo4j.Execution;
 import org.activiti.neo4j.ProcessInstance;
 import org.activiti.neo4j.RelTypes;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.index.Index;
+
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.Vertex;
 
 /**
  * @author Joram Barrez
@@ -30,29 +31,33 @@ public class NodeBasedExecution implements Execution {
 
   // An execution is actually a thin wrapper around a Neo4j relationship
   // adding al sorts of convenience methods that hide the internal bits
-  protected Relationship relationship;
+  
+  protected Graph graphDb;
+  
+  protected Edge relationship;
   
   protected NodeBasedProcessInstance processInstance;
   protected NodeBasedActivity activity;
 
-  public NodeBasedExecution(Relationship relationship) {
+  public NodeBasedExecution(Graph graphDb, Edge relationship) {
+    this.graphDb = graphDb;
     this.relationship = relationship;
   }
 
   public ProcessInstance getProcessInstance() {
     if (processInstance == null) {
-      processInstance = new NodeBasedProcessInstance(getProcessInstanceNode());
+      processInstance = new NodeBasedProcessInstance(graphDb, getProcessInstanceNode());
     }
     return processInstance;
   }
   
-  protected Node getProcessInstanceNode() {
-     return relationship.getStartNode();
+  protected Vertex getProcessInstanceNode() {
+     return relationship.getVertex(Direction.OUT);
   }
   
   public Activity getActivity() {
     if (activity == null) {
-      activity = new NodeBasedActivity(relationship.getEndNode());
+      activity = new NodeBasedActivity(relationship.getVertex(Direction.IN));
     }
     return activity;
   }
@@ -63,19 +68,19 @@ public class NodeBasedExecution implements Execution {
     // since executions are relationships.
     // Perhaps this needs to be revised
     
-    Node processInstanceNode = getProcessInstanceNode();
+    Vertex processInstanceNode = getProcessInstanceNode();
 
     // Check if the variable node already exists
-    Iterator<Relationship> variableRelationShipIterator = 
-            processInstanceNode.getRelationships(Direction.OUTGOING, RelTypes.VARIABLE).iterator();
+    Iterator<Edge> variableRelationShipIterator = 
+            processInstanceNode.getEdges(Direction.OUT, RelTypes.VARIABLE.toString()).iterator();
     
-    Node variableNode = null;
+    Vertex variableNode = null;
     if (variableRelationShipIterator.hasNext()) {
-      Relationship variableRelationship = variableRelationShipIterator.next();
-      variableNode = variableRelationship.getEndNode();
+      Edge variableRelationship = variableRelationShipIterator.next();
+      variableNode = variableRelationship.getVertex(Direction.IN);
     } else {
-      variableNode = processInstanceNode.getGraphDatabase().createNode();
-      processInstanceNode.createRelationshipTo(variableNode, RelTypes.VARIABLE);
+      variableNode = graphDb.addVertex(null);
+      processInstanceNode.addEdge(RelTypes.VARIABLE.toString(), variableNode);
     }
     
     variableNode.setProperty(variableName, variableValue);
@@ -83,11 +88,11 @@ public class NodeBasedExecution implements Execution {
 
   public Object getVariable(String variableName) {
     
-    Node processInstanceNode = getProcessInstanceNode();
-    Iterator<Relationship> variableRelationshipIterator = processInstanceNode.getRelationships(RelTypes.VARIABLE).iterator();
+    Vertex processInstanceNode = getProcessInstanceNode();
+    Iterator<Edge> variableRelationshipIterator = processInstanceNode.getEdges(Direction.OUT, RelTypes.VARIABLE.toString()).iterator();
     
     if (variableRelationshipIterator.hasNext()) {
-      Node variableNode = variableRelationshipIterator.next().getEndNode();
+      Vertex variableNode = variableRelationshipIterator.next().getVertex(Direction.IN);
       return variableNode.getProperty(variableName);
     } else {
       // No variable associated with this process instance
@@ -95,41 +100,36 @@ public class NodeBasedExecution implements Execution {
     }
   }
   
-  public void addToIndex(String namespace, String key, Object value) {
-    Index<Relationship> index = relationship.getGraphDatabase().index().forRelationships(namespace);
-    index.add(relationship, key, value);
-  }
-  
   public Object getProperty(String property) {
     return relationship.getProperty(property);
   }
   
   public boolean hasProperty(String property) {
-    return relationship.hasProperty(property);
+    return (relationship.getProperty(property) != null);
   }
   
   public void setProperty(String property, Object value) {
     relationship.setProperty(property, value);
   }
   
-  public Node getStartNode() {
-    return relationship.getStartNode();
+  public Vertex getStartNode() {
+    return relationship.getVertex(Direction.OUT);
   }
   
-  public Node getEndNode() {
-    return relationship.getEndNode();
+  public Vertex getEndNode() {
+    return relationship.getVertex(Direction.IN);
   }
   
   public void delete() {
     // Delete actual execution relationship
-    relationship.delete();
+    relationship.remove();
   }
   
   public Object removeProperty(String property) {
     return relationship.removeProperty(property);
   }
   
-  public Relationship getRelationship() {
+  public Edge getRelationship() {
     return relationship;
   }
 

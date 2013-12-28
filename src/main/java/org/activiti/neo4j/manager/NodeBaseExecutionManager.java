@@ -14,7 +14,8 @@ package org.activiti.neo4j.manager;
 
 import org.activiti.neo4j.Execution;
 import org.activiti.neo4j.entity.NodeBasedExecution;
-import org.neo4j.graphdb.GraphDatabaseService;
+
+import com.tinkerpop.blueprints.Graph;
 
 
 /**
@@ -22,17 +23,17 @@ import org.neo4j.graphdb.GraphDatabaseService;
  */
 public class NodeBaseExecutionManager implements ExecutionManager {
   
-  protected GraphDatabaseService graphDb;
+  protected Graph graphDb;
   
-  public Execution getExecutionById(long id) {
-    return new NodeBasedExecution(graphDb.getRelationshipById(id));
+  public Execution getExecutionById(String id) {
+    return new NodeBasedExecution(graphDb, graphDb.getEdge(id));
   }
 
-  public GraphDatabaseService getGraphDb() {
+  public Graph getGraphDb() {
     return graphDb;
   }
 
-  public void setGraphDb(GraphDatabaseService graphDb) {
+  public void setGraphDb(Graph graphDb) {
     this.graphDb = graphDb;
   }
   

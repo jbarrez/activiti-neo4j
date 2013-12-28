@@ -24,7 +24,7 @@ public class TaskService {
     });
   }
 
-  public void complete(final long taskId) {
+  public void complete(final String taskId) {
     commandExecutor.execute(new Command<Void>() {
       
       public void execute(CommandContext<Void> commandContext) {

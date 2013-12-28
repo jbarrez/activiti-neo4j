@@ -18,7 +18,8 @@ import org.activiti.neo4j.manager.ExecutionManager;
 import org.activiti.neo4j.manager.NodeBaseExecutionManager;
 import org.activiti.neo4j.manager.NodeBasedTaskManager;
 import org.activiti.neo4j.manager.TaskManager;
-import org.neo4j.graphdb.GraphDatabaseService;
+
+import com.tinkerpop.blueprints.Graph;
 
 
 /**
@@ -26,7 +27,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
  */
 public class ProcessEngineConfiguration {
   
-  protected GraphDatabaseService graphDatabaseService;
+  protected Graph graph;
   protected BehaviorMapping behaviorMapping;
   protected Core core;
   protected CommandExecutor commandExecutor;
@@ -35,7 +36,7 @@ public class ProcessEngineConfiguration {
   
   public ProcessEngine buildProcessEngine() {
     ProcessEngine processEngine = new ProcessEngine();
-    processEngine.setGraphDatabaseService(graphDatabaseService);
+    processEngine.setGraph(graph);
     
     initBehaviorMapping();
     initCore();
@@ -58,16 +59,16 @@ public class ProcessEngineConfiguration {
   
   protected void initManagers() {
     NodeBaseExecutionManager nodeBaseExecutionManager = new NodeBaseExecutionManager();
-    nodeBaseExecutionManager.setGraphDb(graphDatabaseService);
+    nodeBaseExecutionManager.setGraphDb(graph);
     this.executionManager = nodeBaseExecutionManager;
     
     NodeBasedTaskManager nodeBasedTaskManager = new NodeBasedTaskManager();
-    nodeBasedTaskManager.setGraphDb(graphDatabaseService);
+    nodeBasedTaskManager.setGraphDb(graph);
     this.taskManager = nodeBasedTaskManager;
   }
 
   protected void initCommandExecutor(ProcessEngine processEngine) {
-    CommandExecutor commandExecutor = new CommandExecutor(graphDatabaseService);
+    CommandExecutor commandExecutor = new CommandExecutor(graph);
     commandExecutor.setCore(core);
     commandExecutor.setExecutionManager(executionManager);
     
@@ -76,10 +77,10 @@ public class ProcessEngineConfiguration {
   }
   
   protected void initServices(ProcessEngine processEngine) {
-    RepositoryService repositoryService = new RepositoryService(graphDatabaseService, commandExecutor);
+    RepositoryService repositoryService = new RepositoryService(graph, commandExecutor);
     processEngine.setRepositoryService(repositoryService);
     
-    RuntimeService runtimeService = new RuntimeService(graphDatabaseService, commandExecutor);
+    RuntimeService runtimeService = new RuntimeService(graph, commandExecutor);
     processEngine.setRuntimeService(runtimeService);
     
     TaskService taskService = new TaskService(commandExecutor);
@@ -87,12 +88,12 @@ public class ProcessEngineConfiguration {
     processEngine.setTaskService(taskService);
   }
   
-  public GraphDatabaseService getGraphDatabaseService() {
-    return graphDatabaseService;
+  public Graph getGraph() {
+    return graph;
   }
 
-  public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
-    this.graphDatabaseService = graphDatabaseService;
+  public void setGraph(Graph graph) {
+    this.graph = graph;
   }
   
 }

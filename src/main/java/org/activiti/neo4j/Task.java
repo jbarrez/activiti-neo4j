@@ -5,14 +5,14 @@ package org.activiti.neo4j;
  */
 public class Task {
   
-  protected long id;
+  protected String id;
   protected String name;
   
-  public long getId() {
+  public String getId() {
     return id;
   }
   
-  public void setId(long id) {
+  public void setId(String id) {
     this.id = id;
   }
   

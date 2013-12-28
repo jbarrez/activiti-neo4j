@@ -13,8 +13,9 @@
 package org.activiti.neo4j;
 
 import org.activiti.neo4j.manager.ExecutionManager;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
+
+import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.TransactionalGraph;
 
 
 /**
@@ -23,12 +24,12 @@ import org.neo4j.graphdb.Transaction;
  */
 public class CommandExecutor {
   
-  protected GraphDatabaseService graphDatabaseService;
+  protected Graph graph;
   protected Core core;
   protected ExecutionManager executionManager;
   
-  public CommandExecutor(GraphDatabaseService graphDatabaseService) {
-    this.graphDatabaseService = graphDatabaseService;
+  public CommandExecutor(Graph graph) {
+    this.graph = graph;
   }
   
   public <T> T execute(final Command<T> command) {
@@ -38,7 +39,7 @@ public class CommandExecutor {
     
     final CommandContext<T> commandContext = initialiseCommandContext(command);
     
-    Transaction tx = graphDatabaseService.beginTx();
+    TransactionalGraph txGraph = (TransactionalGraph)graph;
     try {
       
       while (!commandContext.getAgenda().isEmpty()) {
@@ -46,12 +47,11 @@ public class CommandExecutor {
         runnable.run();
       }
       
-      tx.success();
+      txGraph.commit();
+      
     } catch (Exception e) {
       e.printStackTrace();
-      tx.failure(); 
-    } finally {
-      tx.finish();
+      txGraph.rollback(); 
     }
     
     return commandContext.getResult();
@@ -74,13 +74,13 @@ public class CommandExecutor {
   }
 
   
-  public GraphDatabaseService getGraphDatabaseService() {
-    return graphDatabaseService;
+  public Graph getGraph() {
+    return graph;
   }
 
   
-  public void setGraphDatabaseService(GraphDatabaseService graphDatabaseService) {
-    this.graphDatabaseService = graphDatabaseService;
+  public void setGraphDatabaseService(Graph graph) {
+    this.graph = graph;
   }
 
   public Core getCore() {
